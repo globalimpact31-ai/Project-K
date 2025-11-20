@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zoner Games - Arcade Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;600&display=swap');
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0f172a;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        h1, h2, h3, .brand-font {
+            font-family: 'Orbitron', sans-serif;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3b82f6;
+            border-radius: 4px;
+        }
+
+        /* Animations */
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .neon-text-blue {
+            text-shadow: 0 0 10px #3b82f6, 0 0 20px #3b82f6;
+        }
+        .neon-text-purple {
+            text-shadow: 0 0 10px #a855f7, 0 0 20px #a855f7;
+        }
+        .neon-text-green {
+            text-shadow: 0 0 10px #22c55e, 0 0 20px #22c55e;
+        }
+
+        /* Game Canvas Containers */
+        #game-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.95);
+            z-index: 50;
+            display: none; /* Hidden by default */
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+        }
+
+        canvas {
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            border-radius: 8px;
+            max-width: 100%;
+            max-height: 80vh;
+        }
+        
+        .grid-game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            max-width: 400px;
+        }
+        
+        .memory-card {
+            aspect-ratio: 1;
+            background: #1e293b;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            transition: transform 0.3s, background 0.3s;
+            user-select: none;
+        }
+        .memory-card.flipped {
+            background: #3b82f6;
+            transform: rotateY(180deg);
+        }
+        .memory-card.matched {
+            background: #22c55e;
+            opacity: 0.7;
+            cursor: default;
+        }
+
+    </style>
+</head>
+<body class="antialiased selection:bg-blue-500 selection:text-white">
+
+    <!-- Navigation -->
+    <nav class="fixed w-full z-40 bg-slate-900/80 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <div class="flex items-center gap-2">
+                    <svg class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <span class="text-2xl font-bold brand-font tracking-wider text-white">ZONER</span>
+                </div>
+                <div class="hidden md:block">
+                    <div class="ml-10 flex items-baseline space-x-8">
+                        <a href="#reflex-zone" class="hover:text-blue-400 transition-colors px-3 py-2 rounded-md text-sm font-medium">Reflex Zone</a>
+                        <a href="#mind-zone" class="hover:text-purple-400 transition-colors px-3 py-2 rounded-md text-sm font-medium">Mind Zone</a>
+                        <a href="#zen-zone" class="hover:text-green-400 transition-colors px-3 py-2 rounded-md text-sm font-medium">Zen Zone</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative pt-32 pb-20 sm:pt-40 sm:pb-24 overflow-hidden">
+        <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center z-10">
+            <h1 class="text-5xl md:text-7xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 mb-6 animate-float">
+                ENTER THE ZONE
+            </h1>
+            <p class="mt-4 text-xl text-slate-400 max-w-2xl mx-auto">
+                Experience three distinct dimensions of browser gaming. Test your speed, challenge your intellect, or simply relax.
+            </p>
+            <div class="mt-10 flex justify-center gap-4">
+                <a href="#reflex-zone" class="px-8 py-3 rounded-full bg-blue-600 hover:bg-blue-500 text-white font-bold transition shadow-[0_0_20px_rgba(59,130,246,0.5)]">Start Playing</a>
+            </div>
+        </div>
+        
+        <!-- Background Decorative Elements -->
+        <div class="absolute top-0 left-1/2 w-full -translate-x-1/2 h-full z-0 opacity-20 pointer-events-none">
+            <div class="absolute top-20 left-20 w-72 h-72 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+            <div class="absolute top-20 right-20 w-72 h-72 bg-purple-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+            <div class="absolute -bottom-8 left-40 w-72 h-72 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+        </div>
+    </div>
+
+    <!-- Game Zones Container -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 space-y-24 pb-40">
+
+        <!-- Zone 1: Reflex (Action) -->
+        <section id="reflex-zone" class="scroll-mt-24">
+            <div class="flex flex-col md:flex-row items-center gap-12">
+                <div class="flex-1 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-blue-900/30 border border-blue-500/30 text-blue-400 text-sm font-medium">
+                        <span class="w-2 h-2 rounded-full bg-blue-400 animate-pulse"></span> NEON ARCADE
+                    </div>
+                    <h2 class="text-4xl font-bold text-white neon-text-blue">Reflex Zone</h2>
+                    <p class="text-slate-400 text-lg">
+                        How fast are your reactions? In <span class="text-white font-semibold">Neon Aim</span>, targets appear rapidly. Click them before they fade. Precision is key.
+                    </p>
+                    <div class="flex gap-4 text-sm text-slate-500">
+                        <div class="flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg> High Speed</div>
+                        <div class="flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg> Focus</div>
+                    </div>
+                    <button onclick="gameManager.start('reflex')" class="mt-4 px-6 py-3 bg-slate-800 hover:bg-blue-600 border border-slate-700 hover:border-blue-500 text-white rounded-lg transition-all duration-300 flex items-center gap-2 group">
+                        Play Neon Aim
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <div class="flex-1 w-full relative group cursor-pointer" onclick="gameManager.start('reflex')">
+                    <div class="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                    <div class="relative bg-slate-800 rounded-2xl p-2 border border-slate-700 aspect-video overflow-hidden card-hover transition-all duration-300">
+                        <!-- Decorative mockup for Reflex Game -->
+                        <div class="w-full h-full bg-slate-900 rounded-lg relative flex items-center justify-center overflow-hidden">
+                            <div class="absolute w-12 h-12 rounded-full border-2 border-blue-500 flex items-center justify-center top-1/4 left-1/4">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full"></div>
+                            </div>
+                            <div class="absolute w-8 h-8 rounded-full border-2 border-cyan-500 top-1/2 right-1/3 opacity-50"></div>
+                            <h3 class="text-2xl font-bold text-white z-10 tracking-widest">NEON AIM</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Zone 2: Mind (Puzzle) -->
+        <section id="mind-zone">
+            <div class="flex flex-col md:flex-row-reverse items-center gap-12">
+                <div class="flex-1 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-purple-900/30 border border-purple-500/30 text-purple-400 text-sm font-medium">
+                        <span class="w-2 h-2 rounded-full bg-purple-400 animate-pulse"></span> LOGIC LAB
+                    </div>
+                    <h2 class="text-4xl font-bold text-white neon-text-purple">Mind Zone</h2>
+                    <p class="text-slate-400 text-lg">
+                        Train your brain in the <span class="text-white font-semibold">Cosmic Memory</span> matrix. Find matching pairs of cosmic symbols hidden within the grid.
+                    </p>
+                    <div class="flex gap-4 text-sm text-slate-500">
+                        <div class="flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg> Memory</div>
+                        <div class="flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg> Strategy</div>
+                    </div>
+                    <button onclick="gameManager.start('mind')" class="mt-4 px-6 py-3 bg-slate-800 hover:bg-purple-600 border border-slate-700 hover:border-purple-500 text-white rounded-lg transition-all duration-300 flex items-center gap-2 group">
+                        Play Cosmic Memory
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <div class="flex-1 w-full relative group cursor-pointer" onclick="gameManager.start('mind')">
+                    <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                    <div class="relative bg-slate-800 rounded-2xl p-2 border border-slate-700 aspect-video overflow-hidden card-hover transition-all duration-300">
+                        <div class="w-full h-full bg-slate-900 rounded-lg relative flex items-center justify-center gap-2">
+                            <div class="grid grid-cols-3 gap-2 opacity-50">
+                                <div class="w-8 h-8 bg-purple-500 rounded"></div>
+                                <div class="w-8 h-8 bg-slate-700 rounded"></div>
+                                <div class="w-8 h-8 bg-purple-500 rounded"></div>
+                                <div class="w-8 h-8 bg-slate-700 rounded"></div>
+                                <div class="w-8 h-8 bg-pink-500 rounded"></div>
+                                <div class="w-8 h-8 bg-slate-700 rounded"></div>
+                            </div>
+                            <h3 class="absolute text-2xl font-bold text-white z-10 tracking-widest bg-slate-900/80 px-4 py-1 rounded backdrop-blur-sm">COSMIC</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Zone 3: Zen (Relax) -->
+        <section id="zen-zone">
+            <div class="flex flex-col md:flex-row items-center gap-12">
+                <div class="flex-1 space-y-6">
+                    <div class="inline-flex items-center gap-2 px-4 py-1 rounded-full bg-green-900/30 border border-green-500/30 text-green-400 text-sm font-medium">
+                        <span class="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> CHILL GARDEN
+                    </div>
+                    <h2 class="text-4xl font-bold text-white neon-text-green">Zen Zone</h2>
+                    <p class="text-slate-400 text-lg">
+                        No score, no pressure. Create beautiful particle art in the <span class="text-white font-semibold">Flow Garden</span>. Move your cursor or touch to bring light to the void.
+                    </p>
+                    <div class="flex gap-4 text-sm text-slate-500">
+                        <div class="flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg> Relax</div>
+                        <div class="flex items-center gap-1"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg> Creative</div>
+                    </div>
+                    <button onclick="gameManager.start('zen')" class="mt-4 px-6 py-3 bg-slate-800 hover:bg-green-600 border border-slate-700 hover:border-green-500 text-white rounded-lg transition-all duration-300 flex items-center gap-2 group">
+                        Enter Flow Garden
+                        <svg class="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    </button>
+                </div>
+                <div class="flex-1 w-full relative group cursor-pointer" onclick="gameManager.start('zen')">
+                    <div class="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                    <div class="relative bg-slate-800 rounded-2xl p-2 border border-slate-700 aspect-video overflow-hidden card-hover transition-all duration-300">
+                        <div class="w-full h-full bg-slate-900 rounded-lg relative overflow-hidden">
+                            <div class="absolute inset-0 opacity-50">
+                                <!-- CSS Particles hint -->
+                                <div class="absolute top-1/2 left-1/4 w-2 h-2 bg-green-400 rounded-full shadow-[0_0_10px_#4ade80]"></div>
+                                <div class="absolute top-1/3 right-1/4 w-3 h-3 bg-emerald-400 rounded-full shadow-[0_0_15px_#34d399]"></div>
+                                <div class="absolute bottom-1/3 left-1/2 w-1 h-1 bg-white rounded-full shadow-[0_0_5px_white]"></div>
+                            </div>
+                             <div class="absolute inset-0 flex items-center justify-center">
+                                <h3 class="text-2xl font-bold text-white tracking-widest">FLOW</h3>
+                             </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-8">
+        <div class="max-w-7xl mx-auto px-4 text-center text-slate-500">
+            <p class="brand-font text-lg text-slate-300 mb-2">ZONER</p>
+            <p>&copy; 2024 Zoner Games. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- GAME OVERLAY -->
+    <div id="game-container">
+        <!-- Header for game -->
+        <div class="absolute top-4 left-0 w-full flex justify-between items-center px-6">
+            <div class="text-white font-bold text-xl brand-font" id="game-title">GAME TITLE</div>
+            <div class="flex gap-4">
+                <div id="game-score" class="text-blue-400 font-mono text-xl">Score: 0</div>
+                <button onclick="gameManager.close()" class="bg-red-500/20 hover:bg-red-500/40 text-red-400 border border-red-500/50 rounded-full px-4 py-1 transition">Exit Zone</button>
+            </div>
+        </div>
+
+        <!-- Canvas Area (For Reflex and Zen) -->
+        <canvas id="gameCanvas" class="hidden"></canvas>
+
+        <!-- HTML Game Area (For Memory) -->
+        <div id="htmlGameArea" class="hidden"></div>
+
+        <!-- Game Over / Menu Modal -->
+        <div id="game-menu" class="absolute inset-0 flex items-center justify-center bg-black/50 z-10 hidden">
+            <div class="bg-slate-800 border border-slate-700 p-8 rounded-xl text-center shadow-2xl max-w-sm mx-auto">
+                <h3 id="menu-title" class="text-2xl text-white font-bold mb-2">Game Over</h3>
+                <p id="menu-score" class="text-blue-400 text-xl font-mono mb-6">Score: 150</p>
+                <button onclick="gameManager.restart()" class="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white rounded font-bold mb-3">Play Again</button>
+                <button onclick="gameManager.close(
